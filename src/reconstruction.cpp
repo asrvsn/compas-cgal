@@ -1,5 +1,6 @@
 #include "reconstruction.h"
 #include <CGAL/poisson_surface_reconstruction.h>
+#include <CGAL/Advancing_front_surface_reconstruction.h>
 #include <CGAL/property_map.h>
 
 #include <CGAL/remove_outliers.h>
@@ -54,6 +55,32 @@ poisson_surface_reconstruction(
         CGAL::Second_of_pair_property_map<PointVectorPair>(),
         mesh,
         average_spacing);
+
+    return compas::polyhedron_to_vertices_and_faces(mesh);
+}
+
+/**
+ * @brief Perform advancing front surface reconstruction.
+ *
+ * @param P The points of the cloud.
+ * @return std::tuple<compas::RowMatrixXd, compas::RowMatrixXi>
+ */
+std::tuple<compas::RowMatrixXd, compas::RowMatrixXi>
+advancing_front_surface_reconstruction(
+    Eigen::Ref<const compas::RowMatrixXd> &P)
+{
+    compas::Polyhedron mesh;
+    std::vector<compas::Point> points;
+
+    for (int i = 0; i < P.rows(); i++)
+    {
+        points.push_back(compas::Point(P(i, 0), P(i, 1), P(i, 2)));
+    }
+
+    CGAL::advancing_front_surface_reconstruction(
+        points.begin(),
+        points.end(),
+        mesh);
 
     return compas::polyhedron_to_vertices_and_faces(mesh);
 }
@@ -311,6 +338,11 @@ void init_reconstruction(pybind11::module &m)
         &poisson_surface_reconstruction,
         pybind11::arg("P").noconvert(),
         pybind11::arg("N").noconvert());
+
+    submodule.def(
+        "advancing_front_surface_reconstruction",
+        &advancing_front_surface_reconstruction,
+        pybind11::arg("P").noconvert());
 
     submodule.def(
         "pointset_outlier_removal",

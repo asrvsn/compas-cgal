@@ -35,6 +35,26 @@ def poisson_surface_reconstruction(
     N = np.asarray(normals, dtype=np.float64)
     return reconstruction.poisson_surface_reconstruction(P, N)
 
+def advancing_front_surface_reconstruction(
+    points: Union[list[Point], FloatNx3],
+) -> Tuple[FloatNx3, IntNx3]:
+    """Reconstruct a surface from a point cloud using the Advancing Front surface reconstruction algorithm.
+
+    Parameters
+    ----------
+    points : list of :class:`compas.geometry.Point` or :class:`numpy.ndarray`
+        The points of the point cloud.
+
+    Returns
+    -------
+    tuple of :class:`numpy.ndarray`
+        The vertices and faces of the reconstructed surface.
+
+    """
+
+    P = np.asarray(points, dtype=np.float64, order='C')
+    return reconstruction.advancing_front_surface_reconstruction(P)
+
 
 def pointset_outlier_removal(
     points: Union[list[Point], FloatNx3],

@@ -8,6 +8,10 @@ poisson_surface_reconstruction(
     Eigen::Ref<const compas::RowMatrixXd> &P,
     Eigen::Ref<const compas::RowMatrixXd> &N);
 
+std::tuple<compas::RowMatrixXd, compas::RowMatrixXi>
+advancing_front_surface_reconstruction(
+    Eigen::Ref<const compas::RowMatrixXd> &P);
+
 compas::RowMatrixXd
 pointset_outlier_removal(
     Eigen::Ref<const compas::RowMatrixXd> &P,
