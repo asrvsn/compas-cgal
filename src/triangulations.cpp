@@ -11,6 +11,8 @@
 #include <CGAL/Delaunay_mesh_size_criteria_2.h>
 #include <CGAL/Triangulation_conformer_2.h>
 #include <CGAL/lloyd_optimize_mesh_2.h>
+#include <CGAL/Periodic_2_Delaunay_triangulation_2.h>
+#include <CGAL/Periodic_2_Delaunay_triangulation_traits_2.h>
 #include <unordered_map>
 
 struct FaceInfo
@@ -44,6 +46,15 @@ using Itag = CGAL::Exact_predicates_tag;
 using CDT3 = CGAL::Constrained_Delaunay_triangulation_2<compas::Kernel, TDS3, Itag>;
 using Criteria = CGAL::Delaunay_mesh_size_criteria_2<CDT3>;
 
+using PTT2 = CGAL::Periodic_2_Delaunay_triangulation_traits_2<compas::Kernel>;
+
+using _PVertexBase2 = CGAL::Periodic_2_triangulation_vertex_base_2<PTT2>;
+using PVertexBase2 = CGAL::Triangulation_vertex_base_with_info_2<unsigned, PTT2, _PVertexBase2>;
+using PFaceBase2 = CGAL::Periodic_2_triangulation_face_base_2<PTT2>;
+using PTDS2 = CGAL::Triangulation_data_structure_2<PVertexBase2, PFaceBase2>;
+using PDT2 = CGAL::Periodic_2_Delaunay_triangulation_2<PTT2, PTDS2>;
+// typedef CGAL::Periodic_2_Delaunay_triangulation_2<PTT2, Tds>              Delaunay;
+
 // ===========================================================================
 // ===========================================================================
 // ===========================================================================
@@ -57,7 +68,7 @@ using Criteria = CGAL::Delaunay_mesh_size_criteria_2<CDT3>;
  *
  * @param V The given vertex locations.
  */
-compas::RowMatrixXi
+compas::RowMatrix3i
 pmp_delaunay_triangulation(Eigen::Ref<const compas::RowMatrixXd> &V)
 {
     DT triangulation;
@@ -72,7 +83,7 @@ pmp_delaunay_triangulation(Eigen::Ref<const compas::RowMatrixXd> &V)
 
     triangulation.insert(points.begin(), points.end());
 
-    compas::RowMatrixXi F(triangulation.number_of_faces(), 3);
+    compas::RowMatrix3i F(triangulation.number_of_faces(), 3);
 
     int j = 0;
     for (DT::Finite_faces_iterator fit = triangulation.finite_faces_begin(); fit != triangulation.finite_faces_end(); fit++)
@@ -85,6 +96,62 @@ pmp_delaunay_triangulation(Eigen::Ref<const compas::RowMatrixXd> &V)
 
         j++;
     }
+
+    return F;
+}
+
+/**
+ * 2D Periodic Delaunay Triangulation of a given set of points.
+ *
+ * @param V The given vertex locations.
+ */
+compas::RowMatrix3i
+pmp_periodic_delaunay_triangulation(
+    Eigen::Ref<const compas::RowMatrixXd> &V,
+    Eigen::Ref<const compas::Box2D> &box
+)
+{
+    std::vector<std::pair<PDT2::Point, unsigned>> points(V.rows());
+    for (int i = 0; i < V.rows(); i++)
+    {
+        points[i] = std::make_pair(PDT2::Point(V(i, 0), V(i, 1)), i);
+    }
+
+    PDT2::Iso_rectangle domain(box(0, 0), box(0, 1), box(1, 0), box(1, 1));
+    PDT2 T(domain);
+    T.insert(points.begin(), points.end());
+
+    compas::RowMatrix3i F(T.number_of_faces(), 3);
+
+    int j = 0;
+    for (PDT2::Finite_faces_iterator fit = T.finite_faces_begin(); fit != T.finite_faces_end(); fit++)
+    {
+        PDT2::Face_handle face = fit;
+
+        F(j, 0) = face->vertex(0)->info();
+        F(j, 1) = face->vertex(1)->info();
+        F(j, 2) = face->vertex(2)->info();
+
+        j++;
+    }
+
+    // PDT2::Periodic_triangle ptri;
+    // PTT2:Triangle tri;
+    // // Extracting the triangles that have a non-empty intersection with
+    // // the original domain of the 1-sheeted covering space
+    // for (PDT2::Periodic_triangle_iterator ptit = T.periodic_triangles_begin(PDT2::UNIQUE_COVER_DOMAIN);
+    //     ptit != T.periodic_triangles_end(PDT2::UNIQUE_COVER_DOMAIN); ++ptit)
+    // {
+    //     ptri = *ptit;
+    //     if (! (ptri[0].second.is_null() && ptri[1].second.is_null() && ptri[2].second.is_null()) )
+    //     {
+    //         // Convert the current Periodic_triangle to a Triangle if it is
+    //         // not strictly contained inside the original domain.
+    //         // Note that this requires EXACT constructions to be exact!
+    //         tri = T.triangle(ptri);
+    //     }
+    //     j++;
+    // }
 
     return F;
 }
@@ -524,6 +591,12 @@ void init_triangulations(pybind11::module &m)
         "delaunay_triangulation",
         &pmp_delaunay_triangulation,
         pybind11::arg("V").noconvert());
+
+    submodule.def(
+        "periodic_delaunay_triangulation",
+        &pmp_periodic_delaunay_triangulation,
+        pybind11::arg("V").noconvert(),
+        pybind11::arg("box").noconvert());
 
     submodule.def(
         "constrained_delaunay_triangulation",

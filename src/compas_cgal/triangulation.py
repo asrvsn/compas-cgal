@@ -8,7 +8,7 @@ from .types import FacesNumpy
 from .types import VerticesFacesNumpy
 
 
-@plugin(category="traingulation", requires=["compas_cgal"])
+@plugin(category="triangulation", requires=["compas_cgal"])
 def delaunay_triangulation(points: list[Point]) -> FacesNumpy:
     """Construct a Delaunay triangulation from a set of points.
 
@@ -37,6 +37,11 @@ def delaunay_triangulation(points: list[Point]) -> FacesNumpy:
     vertices = np.asarray(points, dtype=np.float64)
     return triangulations.delaunay_triangulation(vertices)
 
+@plugin(category="triangulation", requires=["compas_cgal"])
+def periodic_delaunay_triangulation(points: list[Point], box: list[Point]) -> FacesNumpy:
+    vertices = np.asarray(points, dtype=np.float64)
+    box = np.asarray(box, dtype=np.float64)
+    return triangulations.periodic_delaunay_triangulation(vertices, box)
 
 @plugin(category="triangulation", requires=["compas_cgal"])
 def constrained_delaunay_triangulation(

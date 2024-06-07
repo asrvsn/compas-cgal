@@ -3,11 +3,16 @@
 
 #include <compas.h>
 
-
-compas::RowMatrixXi
+compas::RowMatrix3i
 pmp_delaunay_triangulation(
     Eigen::Ref<const compas::RowMatrixXd> & V);
 
+
+compas::RowMatrix3i
+pmp_periodic_delaunay_triangulation(
+    Eigen::Ref<const compas::RowMatrixXd> &V,
+    Eigen::Ref<const compas::Box2D> &box
+);
 
 std::tuple<compas::RowMatrixXd, compas::RowMatrixXi>
 pmp_constrained_delaunay_triangulation(
