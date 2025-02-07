@@ -135,24 +135,6 @@ pmp_periodic_delaunay_triangulation(
         j++;
     }
 
-    // PDT2::Periodic_triangle ptri;
-    // PTT2:Triangle tri;
-    // // Extracting the triangles that have a non-empty intersection with
-    // // the original domain of the 1-sheeted covering space
-    // for (PDT2::Periodic_triangle_iterator ptit = T.periodic_triangles_begin(PDT2::UNIQUE_COVER_DOMAIN);
-    //     ptit != T.periodic_triangles_end(PDT2::UNIQUE_COVER_DOMAIN); ++ptit)
-    // {
-    //     ptri = *ptit;
-    //     if (! (ptri[0].second.is_null() && ptri[1].second.is_null() && ptri[2].second.is_null()) )
-    //     {
-    //         // Convert the current Periodic_triangle to a Triangle if it is
-    //         // not strictly contained inside the original domain.
-    //         // Note that this requires EXACT constructions to be exact!
-    //         tri = T.triangle(ptri);
-    //     }
-    //     j++;
-    // }
-
     return F;
 }
 
